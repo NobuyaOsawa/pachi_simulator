@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>パチンコシミュレーター (履歴付き)</title>
+    <title>パチンコシミュレーター (アコーディオン付き)</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -27,23 +27,54 @@
             font-size: 24px;
             color: green;
         }
-        .info, .history {
-            margin-top: 20px;
-            font-size: 18px;
+        .chart-container {
+            max-width: 600px;
+            margin: 30px auto;
         }
-        .history {
+        .accordion {
             text-align: left;
-            max-width: 500px;
             margin: 20px auto;
+            max-width: 500px;
+        }
+        .accordion-button {
+            width: 100%;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            padding: 10px;
+            font-size: 18px;
+            cursor: pointer;
+            text-align: left;
+        }
+        .accordion-button:hover {
+            background-color: #0056b3;
+        }
+        .accordion-content {
+            display: none;
             border: 1px solid #ccc;
             padding: 10px;
             background-color: #f9f9f9;
+        }
+        .history-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+        .history-list li {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        .history-list li:nth-child(even) {
+            background-color: #f1f1f1;
+        }
+        .history-list li:nth-child(odd) {
+            background-color: #ffffff;
         }
     </style>
 </head>
 <body>
     <h1>パチンコシミュレーター</h1>
-    <p>確率を設定して、当たりが出るまでの試行履歴を確認しましょう。</p>
+    <p>確率を設定して、当たりが出るまでの試行結果を確認しましょう。</p>
 
     <div>
         <label for="odds">確率 (1/):</label>
@@ -54,13 +85,22 @@
     <button onclick="reset()">リセット</button>
 
     <div class="result" id="result">結果がここに表示されます。</div>
-    <div class="history" id="history">
-        <strong>試行履歴:</strong>
-        <ul id="history-list"></ul>
+    <div class="chart-container">
+        <canvas id="trialsChart"></canvas>
     </div>
 
+    <div class="accordion">
+        <button class="accordion-button" onclick="toggleAccordion()">試行履歴の表示/非表示</button>
+        <div class="accordion-content" id="accordion-content">
+            <strong>試行履歴:</strong>
+            <ul id="history-list" class="history-list"></ul>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         let trialCount = 0; // 試行の回数
+        const spinRanges = Array(10).fill(0); // 50回転刻みで回数を記録 (0〜49, 50〜99, ..., 450〜499)
 
         function getOdds() {
             const oddsInput = document.getElementById('odds').value;
@@ -83,27 +123,87 @@
             }
 
             trialCount++;
-            document.getElementById('result').textContent = "当たり！ 🎉 " + spins + "回転で当たりました！";
+            document.getElementById('result').textContent = `当たり！ 🎉 ${spins}回転で当たりました！`;
             document.getElementById('result').style.color = "red";
 
             addHistory(trialCount, spins, odds);
+            updateSpinRanges(spins);
+            updateChart();
         }
 
         function addHistory(trial, spins, odds) {
             const historyList = document.getElementById('history-list');
             const newEntry = document.createElement('li');
-            newEntry.textContent = `試行 ${trial}: 確率 1/${odds}, ${spins} 回転で当たり`;
-            historyList.appendChild(newEntry);
+            newEntry.innerHTML = `<strong>試行 ${trial}:</strong> 確率 1/${odds}, ${spins} 回転で当たり`;
+            historyList.prepend(newEntry);
+        }
+
+        function updateSpinRanges(spins) {
+            const index = Math.min(Math.floor(spins / 100), spinRanges.length - 1); // 50回転刻みで分類
+            spinRanges[index]++;
         }
 
         function reset() {
             trialCount = 0;
+            spinRanges.fill(0);
             document.getElementById('result').textContent = "結果がここに表示されます。";
             document.getElementById('result').style.color = "green";
 
             // 履歴をクリア
             const historyList = document.getElementById('history-list');
             historyList.innerHTML = '';
+
+            // グラフをリセット
+            updateChart();
+        }
+
+        // アコーディオンの表示切り替え
+        function toggleAccordion() {
+            const content = document.getElementById('accordion-content');
+            content.style.display = content.style.display === "block" ? "none" : "block";
+        }
+
+        // グラフの設定
+        const ctx = document.getElementById('trialsChart').getContext('2d');
+        const trialsChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ["0-99", "100-199", "200-299", "300-399", "400-449", "500-599", "600-699", "700-799", "800-899", "900-999+"],
+                datasets: [{
+                    label: '回数分布',
+                    data: spinRanges,
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: '回数'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: '回転数の範囲'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+
+        function updateChart() {
+            trialsChart.data.datasets[0].data = spinRanges;
+            trialsChart.update();
         }
     </script>
 </body>
