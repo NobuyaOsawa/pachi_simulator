@@ -60,7 +60,6 @@
     </div>
 
     <script>
-        let spins = 0; // 現在の回転数
         let trialCount = 0; // 試行の回数
 
         function getOdds() {
@@ -75,7 +74,7 @@
 
         function calculateTrials() {
             const odds = getOdds();
-            spins = 0;
+            let spins = 0;
             let isWin = false;
 
             while (!isWin) {
@@ -98,9 +97,7 @@
         }
 
         function reset() {
-            spins = 0;
             trialCount = 0;
-            document.getElementById('spins').textContent = spins;
             document.getElementById('result').textContent = "結果がここに表示されます。";
             document.getElementById('result').style.color = "green";
 
