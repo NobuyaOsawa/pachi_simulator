@@ -81,7 +81,11 @@
         <input type="number" id="odds" value="99" min="1">
     </div>
 
-    <button onclick="calculateTrials()">当たるまで回転</button>
+    <button onclick="calculateTrials()">1回当たるまで</button>
+    <button onclick="multipleCalculateTrials(10)">10回</button>
+    <button onclick="multipleCalculateTrials(100)">100回</button>
+    <button onclick="multipleCalculateTrials(1000)">1000回</button>
+    <button onclick="multipleCalculateTrials(5000)">5000回</button>
     <button onclick="reset()">リセット</button>
 
     <div class="result" id="result">結果がここに表示されます。</div>
@@ -100,7 +104,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         let trialCount = 0; // 試行の回数
-        const spinRanges = Array(10).fill(0); // 50回転刻みで回数を記録 (0〜49, 50〜99, ..., 450〜499)
+        const spinRanges = Array(10).fill(0); // 100回転刻みで回数を記録 (0〜99, 100〜199, ..., 900〜999)
 
         function getOdds() {
             const oddsInput = document.getElementById('odds').value;
@@ -110,6 +114,13 @@
                 return 99; // デフォルトの確率
             }
             return odds;
+        }
+            
+        function multipleCalculateTrials(times) {
+            for(let i = 0; i < times; i++){
+                calculateTrials();
+            }
+
         }
 
         function calculateTrials() {
