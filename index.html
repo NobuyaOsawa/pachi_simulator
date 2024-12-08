@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>パチンコシミュレーター (履歴付き)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        button {
+            font-size: 20px;
+            padding: 10px 20px;
+            margin: 10px;
+            cursor: pointer;
+        }
+        input {
+            font-size: 18px;
+            padding: 5px;
+            width: 100px;
+            text-align: center;
+        }
+        .result {
+            margin-top: 20px;
+            font-size: 24px;
+            color: green;
+        }
+        .info, .history {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        .history {
+            text-align: left;
+            max-width: 500px;
+            margin: 20px auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <h1>パチンコシミュレーター</h1>
+    <p>確率を設定して、当たりが出るまでの試行履歴を確認しましょう。</p>
+
+    <div>
+        <label for="odds">確率 (1/):</label>
+        <input type="number" id="odds" value="99" min="1">
+    </div>
+
+    <button onclick="calculateTrials()">当たるまで回転</button>
+    <button onclick="reset()">リセット</button>
+
+    <div class="result" id="result">結果がここに表示されます。</div>
+    <div class="history" id="history">
+        <strong>試行履歴:</strong>
+        <ul id="history-list"></ul>
+    </div>
+
+    <script>
+        let spins = 0; // 現在の回転数
+        let trialCount = 0; // 試行の回数
+
+        function getOdds() {
+            const oddsInput = document.getElementById('odds').value;
+            const odds = parseInt(oddsInput, 10);
+            if (isNaN(odds) || odds <= 0) {
+                alert("正しい確率を入力してください (1以上の整数)");
+                return 99; // デフォルトの確率
+            }
+            return odds;
+        }
+
+        function calculateTrials() {
+            const odds = getOdds();
+            spins = 0;
+            let isWin = false;
+
+            while (!isWin) {
+                spins++;
+                isWin = Math.random() < (1 / odds);
+            }
+
+            trialCount++;
+            document.getElementById('result').textContent = "当たり！ 🎉 " + spins + "回転で当たりました！";
+            document.getElementById('result').style.color = "red";
+
+            addHistory(trialCount, spins, odds);
+        }
+
+        function addHistory(trial, spins, odds) {
+            const historyList = document.getElementById('history-list');
+            const newEntry = document.createElement('li');
+            newEntry.textContent = `試行 ${trial}: 確率 1/${odds}, ${spins} 回転で当たり`;
+            historyList.appendChild(newEntry);
+        }
+
+        function reset() {
+            spins = 0;
+            trialCount = 0;
+            document.getElementById('spins').textContent = spins;
+            document.getElementById('result').textContent = "結果がここに表示されます。";
+            document.getElementById('result').style.color = "green";
+
+            // 履歴をクリア
+            const historyList = document.getElementById('history-list');
+            historyList.innerHTML = '';
+        }
+    </script>
+</body>
+</html>
